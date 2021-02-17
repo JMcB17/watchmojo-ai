@@ -1,14 +1,13 @@
+import json
 from pathlib import Path
 
 import youtube_dl
 import webvtt
 import ffmpeg
 
-# plan:
-# download with match title, limit for testing e.g. 10 videos
-# download hook to run function on
-# save split subtitles to <yt vid id>.json
-# save frames to <yt vid id>-<number>.jpeg
+
+# todo: burger
+# todo: top 15's
 
 
 TOP10_TITLE_REGEX = r'.*Top 10.*'
@@ -28,7 +27,7 @@ TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN = (
 downloads_folder = 'downloads'
 
 
-def process_subtitle_file(v_fp: Path, subtitle_lang='en', subtitle_format='vtt', img_format='jpg'):
+def rip_frames(v_fp: Path, subtitle_lang='en', subtitle_format='vtt', img_format='jpg'):
     # todo: fix this - if phrase is split across subtitle lines, the program won't find it.
     searches = TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN
     results = {}
@@ -54,12 +53,34 @@ def process_subtitle_file(v_fp: Path, subtitle_lang='en', subtitle_format='vtt',
     v_fp.unlink()
 
 
+def process_subtitles(v_fp: Path, subtitle_lang='en', subtitle_format='vtt'):
+    searches = TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN
+    results = {}
+    captions_block = ' '.join([c.text for c in webvtt.read(v_fp.with_suffix(f'.{subtitle_lang}.{subtitle_format}'))])
+    for search_index, search in enumerate(searches):
+        # need to get indices at the start actually?
+        substring_start = None
+        substring_end = None
+
+        if search[0] == 10:
+            substring_start = 0
+        else:
+            substring_start = captions_block.index()
+        if search[0] == 1:
+            substring_end = len(captions_block)
+
+        results[search[0]] = captions_block[substring_start:substring_end]
+
+    with open(v_fp.with_suffix('.json'), 'w') as json_file:
+        json.dump(results, json_file)
+
+
 def process_video(progress_hook_dict):
     if progress_hook_dict['status'] != 'finished':
         return
 
     video_file_path = Path(progress_hook_dict['filename'])
-    process_subtitle_file(video_file_path)
+    rip_frames(video_file_path)
     # todo: process subtitles into json
 
 
