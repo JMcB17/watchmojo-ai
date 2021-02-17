@@ -1,5 +1,7 @@
 # watchmojo-ai
-Puts together a number of machine learning models and other APIs to generate watchmojo scripts from prompts.
+Completely unaffiliated with WatchMojo.
+
+Puts together a number of machine learning models and other APIs to generate watchmojo Top 10 video scripts from prompts.
 
 WIP - todo:
 
