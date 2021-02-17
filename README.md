@@ -3,7 +3,7 @@ Puts together a number of machine learning models and other APIs to generate wat
 
 WIP - todo:
 
--~~Plan structure~~ done
+- ~~Plan structure~~ done
 - Create scraper to get dataset from watchmojo videos using youtube-dl and ffmpeg
 - Create AI
 - Port to discord bot?
