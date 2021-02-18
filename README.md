@@ -5,7 +5,8 @@ Puts together a number of machine learning models and other APIs to generate wat
 
 WIP - todo:
 
-- ~~Plan structure~~ done https://raw.githubusercontent.com/JMcB17/watchmojo-ai/main/plan.png
+- ~~Plan structure~~ done   
+![a flowchart showing the ai plan](plan.png "Plan")
 - Create scraper to get dataset from watchmojo videos using youtube-dl and ffmpeg
   - ~~download~~ done
   - ~~rip stills with ffmpeg~~ done  
