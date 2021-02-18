@@ -55,22 +55,33 @@ def rip_frames(v_fp: Path, subtitle_lang='en', subtitle_format='vtt', img_format
 
 def process_subtitles(v_fp: Path, subtitle_lang='en', subtitle_format='vtt'):
     searches = TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN
-    results = {}
+
     captions_block = ' '.join([c.text for c in webvtt.read(v_fp.with_suffix(f'.{subtitle_lang}.{subtitle_format}'))])
-    for search_index, search in enumerate(searches):
-        # need to get indices at the start actually?
-        substring_start = None
-        substring_end = None
 
+    # get indices of search terms
+    captions_block_search_range = captions_block
+    sindices = {}
+    for search in searches:
         if search[0] == 10:
-            substring_start = 0
+            sindices[search[0]] = 0
         else:
-            substring_start = captions_block.index()
-        if search[0] == 1:
-            substring_end = len(captions_block)
+            for search_variant in search:
+                result = captions_block.find(search_variant)
+                if result != -1:
+                    sindices[search[0]] = result
+                    captions_block_search_range = captions_block_search_range[result:]
+                    break
 
-        results[search[0]] = captions_block[substring_start:substring_end]
+    # get substrings from indices
+    results = {}
+    sindices_keys = sorted(sindices.keys())
+    for key_index, key in enumerate(sindices_keys):
+        if key_index == len(sindices_keys):
+            results[key] = captions_block[sindices[key]:]
+        else:
+            results[key] = captions_block[sindices[key]:sindices[sindices_keys[key_index+1]]]
 
+    # dump to json
     with open(v_fp.with_suffix('.json'), 'w') as json_file:
         json.dump(results, json_file)
 
@@ -81,7 +92,7 @@ def process_video(progress_hook_dict):
 
     video_file_path = Path(progress_hook_dict['filename'])
     rip_frames(video_file_path)
-    # todo: process subtitles into json
+    process_subtitles(video_file_path)
 
 
 ydl_args = {
