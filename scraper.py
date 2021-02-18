@@ -1,3 +1,4 @@
+import re
 import json
 from pathlib import Path
 
@@ -11,6 +12,7 @@ import ffmpeg
 
 
 TOP10_TITLE_REGEX = r'.*Top 10.*'
+PROMPT_REGEX = re.compile(r'.*Top 10 (.*)')
 TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN = (
     ('10', 'ten'),
     ('9', 'nine'),
@@ -56,30 +58,37 @@ def rip_frames(v_fp: Path, subtitle_lang='en', subtitle_format='vtt', img_format
 def process_subtitles(v_fp: Path, subtitle_lang='en', subtitle_format='vtt'):
     searches = TOP_10_NUMBERS_FROM_ONE_THROUGH_TEN
 
-    captions_block = ' '.join([c.text for c in webvtt.read(v_fp.with_suffix(f'.{subtitle_lang}.{subtitle_format}'))])
+    # todo: fix
+    captions_block = ' '.join([c.text.replace('\n', '') for c in
+                               webvtt.read(v_fp.with_suffix(f'.{subtitle_lang}.{subtitle_format}'))])
 
     # get indices of search terms
     captions_block_search_range = captions_block
+    search_index_addition = 0
     sindices = {}
     for search in searches:
-        if search[0] == 10:
+        if search[0] == '10':
             sindices[search[0]] = 0
         else:
             for search_variant in search:
-                result = captions_block.find(search_variant)
+                result = captions_block_search_range.find(search_variant)
                 if result != -1:
-                    sindices[search[0]] = result
+                    sindices[search[0]] = search_index_addition + result
+                    search_index_addition += result
                     captions_block_search_range = captions_block_search_range[result:]
                     break
 
     # get substrings from indices
     results = {}
-    sindices_keys = sorted(sindices.keys())
+    sindices_keys = sorted(sindices.keys(), key=int, reverse=True)
     for key_index, key in enumerate(sindices_keys):
-        if key_index == len(sindices_keys):
+        if key_index == len(sindices_keys)-1:
             results[key] = captions_block[sindices[key]:]
         else:
             results[key] = captions_block[sindices[key]:sindices[sindices_keys[key_index+1]]]
+
+    # get prompt text from title of video
+    results['prompt'] = re.match(PROMPT_REGEX, v_fp.stem).group(1)
 
     # dump to json
     with open(v_fp.with_suffix('.json'), 'w') as json_file:
@@ -107,7 +116,7 @@ ydl_args = {
     'sbutitlesformat': 'vtt',
     'subtitleslangs': ['en'],
     # default: '%(title)s-%(id)s.%(ext)s'
-    'outtmpl': f'/{downloads_folder}/%(id)s.%(ext)s',
+    'outtmpl': f'/{downloads_folder}/%(id)s-%(title)s.%(ext)s',
     'progress_hooks': [process_video],
 }
 
