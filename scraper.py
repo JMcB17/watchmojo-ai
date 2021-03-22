@@ -113,7 +113,7 @@ ydl_args = {
     'writethumbnail': True,
     'writesubtitles': True,
     'writeautomaticsub': True,
-    'sbutitlesformat': 'vtt',
+    'subtitlesformat': 'vtt',
     'subtitleslangs': ['en'],
     # default: '%(title)s-%(id)s.%(ext)s'
     'outtmpl': f'/{downloads_folder}/%(id)s-%(title)s.%(ext)s',
